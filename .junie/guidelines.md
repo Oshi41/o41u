@@ -1,89 +1,108 @@
-﻿o41u – Project-specific Development Guidelines
+# Project Guidelines
 
-Audience: Experienced .NET developers working on this repository.
+## This file rules
+* Keep this file up-to-date.
+* Keep projects documentation up-to-date (see o41u/lib/docs/).
+* Use the [Markdown](https://guides.github.com/features/mastering-markdown/) syntax.
+* Use more rich formatting (headers, emoji, bold text, etc.)
+* Use simple, short sentences, separate them with a blank lines.
 
-1. Build and Configuration
-- Toolchain
-  - .NET SDK: 9.0 (LangVersion 12 is used across projects).
-  - OS: Repository and CI assume Windows; paths and example commands use PowerShell with backslashes.
-- Solution layout and TFMs
-  - lib (o41u.lib): netstandard2.0. Nullable enabled, implicit usings generally disabled unless specified. Produces library consumed by other projects.
-  - IL_Weaver (o41u.IL_Weaver): netstandard2.0. Uses System.Reflection.Metadata and System.Reflection.Emit.* to inspect/emit IL.
-  - app (o41u-app): net9.0 console app; Release uses single-file publish options.
-  - aot (o41u.aot): net9.0 console app with PublishAot=true, SelfContained=true (win-x64 by default via SDK resolution). Debug/Release OutputPath is overridden to ..\bin\<Configuration>\.
-  - tests (o41u.tests): net9.0 using NUnit 4, NUnit3TestAdapter, Microsoft.NET.Test.Sdk. References lib and IL_Weaver.
+## Code style rules
+* Use default JetBrains Rider code style for c#. Use approximately:
+* **120** sym / line, **4** spaces for indentation, ~**200-500** lines per file
+* Always prefer readability, easy to understand \ maintain code over performance.
+* **Do not repeat** code from standard libraries, **reuse existing code**.
+* Always prefer existing tools instead of reinventing the wheel.
+* NEVER add dependencies on external Nugget libraries not from Microsoft.
+
+## Documents rules
+* For any notable features, create a separate document in o41u/lib/docs/ in .md format. Use rules above for formatting.
+* Follow the easy read principle: 20 seconds of quick look should be enough to obtain the main idea.
+* Use more pretty formatting for best readability
+* Include those topics for every feature: 
+  * Description | Usage | Reasoning why it's useful | Examples
+
+## Build and Configuration
+.NET SDK: 9.0, LangVersion 12, Windows OS.
+
+- Solution
+  - lib (netstandard2.0): Library project, provide set of useful methods.
+  - IL_Weaver (netstandard2.0): Planning IL weaving tool during compile time.
+  - aot (net9.0): "HelloWorld" console app, PublishAot=true, SelfContained=true.
+  - tests (net9.0): Unit tests, NUnit 4
+  
 - Output paths
-  - Several projects override OutputPath to project_root\bin\<Configuration>\.
-  - Expect binaries in: bin\Debug\ and bin\Release\ plus project-specific subdirectories (e.g., aot also has aot\bin\...).
+  - All projects are building the same directory: o41u/bin/{Configuration}/{Platform}
+  
 - Build
-  - dotnet build .\o41u.sln -c Debug
-  - For Release (single-file app, AOT constraints): dotnet build .\o41u.sln -c Release
-  - Note: IL_Weaver defines MSBuild target RunIlWeaver that is conditioned to run AfterTargets=CoreCompile for consumer projects targeting net8.0. Current apps/tests target net9.0, so this target will not fire automatically. If you want automatic weaving for consumers, either retarget to net8.0 or adjust the target Condition to include net9.0.
+  - IL_Weaver defines MSBuild target RunIlWeaver that is conditioned to run
+    AfterTargets=CoreCompile for consumer projects targeting net8.0.
 
-2. Testing
-- Frameworks and runners
-  - Framework: NUnit 4.x; Runner: Microsoft.NET.Test.Sdk with NUnit3TestAdapter.
-  - Target framework: net9.0.
-- Running tests
-  - All tests in solution: dotnet test .\o41u.sln -c Debug
-  - Project-level: dotnet test .\tests\tests.csproj -c Debug
-  - Filter by fully-qualified name (FQN):
-    - dotnet test .\tests\tests.csproj -c Debug --filter FullyQualifiedName=tests.HelpersTests.CommonComparer_CastAdapter_Works
-- Known behaviors and prerequisites
-  - WeavingTests.LoadAotManagedDll expects to find a file named aot.dll somewhere under the repo. The aot project builds o41u.aot.dll by default. To satisfy this test one of the following must be done before running tests:
-    - Build aot, then copy or rename the output DLL to aot.dll within the repository tree. Example (PowerShell):
-      - dotnet build .\aot\aot.csproj -c Debug
-      - Copy-Item .\aot\bin\Debug\net9.0\o41u.aot.dll .\bin\Debug\aot.dll
-    - Or adjust the test to look for o41u.aot.dll instead (not recommended unless you intend to change the test contract).
-  - Some PromiseTests currently fail (as of 2025-08-15):
-    - PromiseContext_Current_WorksCorrectly (expects "Started" but returns "Should not reach here").
-    - Promise_AddChild_WaitsForChildren (expects false, observed true).
-    - Investigate lib\Promises implementation for context handling and completion semantics if you work on this area.
-- Adding a new test (example)
-  - Create a test file under tests with a [TestFixture] and [Test] method. Example used locally:
-    - File: tests\DocExampleTests.cs
-      using NUnit.Framework;
-      namespace tests;
-      [TestFixture]
-      public class DocExampleTests
-      {
-          [Test]
-          public void Addition_Works()
-          {
-              Assert.That(2 + 2, Is.EqualTo(4));
-          }
-      }
-  - Run a single test for a quick check:
-    - dotnet test .\tests\tests.csproj -c Debug --filter FullyQualifiedName=tests.DocExampleTests.Addition_Works
-  - Remove temporary/example tests before committing unless they add value.
 
-3. Development Notes and Conventions
-- Language and nullability
-  - LangVersion 12; Nullable enabled across projects; prefer explicit nullability annotations and standard patterns for optional values.
-- Logging and diagnostics
-  - lib depends on Serilog and enrichers (Sensitive, Thread, WithCaller). When adding logs, use structured logging with minimal allocations in hot paths.
-- File system utilities
-  - lib.Helpers.Directory and lib.Helpers.File provide Ensure(...) helpers and globbing via Microsoft.Extensions.FileSystemGlobbing. Prefer these utilities over ad-hoc IO when working inside the repo to align with existing tests (see HelpersTests for expected behaviors).
-- Comparisons and guards
-  - lib.Extensions.CommonComparer implements non-trivial semantics for IDictionary/IEnumerable comparisons (e.g., equality vs set containment, special handling of nulls). Consult tests\HelpersTests.cs when changing it to avoid regressions.
-  - Guard and GuardResult encapsulate common validation patterns. GuardResult has implicit conversions to/from bool/string and supports CheckAndThrow(). See tests for usage expectations.
-- IL weaving internals
-  - IL_Weaver emits default method bodies for various return types using System.Reflection.Metadata.
-  - The MSBuild target RunIlWeaver is currently conditioned for net8.0 consumers only:
-    <Target Name="RunIlWeaver" AfterTargets="CoreCompile" BeforeTargets="PrepareForILLink;PublishAot" Condition="'$(MSBuildProjectName)' != 'IL_Weaver' and '$(TargetFramework)' == 'net8.0'">
-    If you need it for net9.0, expand the Condition accordingly.
-- AOT app specifics
-  - aot.csproj sets PublishAot=true and SelfContained=true. For AOT publish, prefer dotnet publish .\aot\aot.csproj -c Release -r win-x64 /p:PublishAot=true.
-  - Unit tests do not require full native AOT publish, but WeavingTests assumes the presence of a managed DLL named aot.dll for metadata loading.
+- Tests
+    - Target on 50% of test code coverage.
+    - Do not be dogma strict about the goals, use your resources wisely.
+    - Tests must confirm main functionality of the feature works
+    - Prefer robust tests over code coverage goal. If you starting spending time
+        on tests too much, drop or exclude them to prevent diving into "the rabbit hole" of
+        support time spending.
+    - Run tests after reasonable code changes.
 
-4. Quickstart
-- Build: dotnet build .\o41u.sln -c Debug
-- Run tests: dotnet test .\tests\tests.csproj -c Debug
-- Make WeavingTests pass (optional):
-  - dotnet build .\aot\aot.csproj -c Debug
-  - Copy-Item .\aot\bin\Debug\net9.0\o41u.aot.dll .\bin\Debug\aot.dll
-- Add a new test: create a [TestFixture] in tests, run it via FQN filter as shown above.
 
-5. Housekeeping
-- Keep OutputPath overrides in csproj files in mind when writing scripts. Many artifacts land in repo_root\bin\<Configuration> in addition to per-project bin folders.
-- Avoid leaving temporary files or tests in the repo. Remove any throwaway diagnostics/tests after use.
+## Roadmap
+- Add docs for implemented features.
+- Adding more extensions for repeating coding tasks (see o41u/lib/Extensions)
+
+- Find the way to modify **System.Reflection.Assembly** loaded from file:
+  - Intercept existing method
+  - Insert method before entering the method
+  - Insert method after executing the method
+
+- Investigate how to populate **System.Reflection.Assembly** to **System.Reflection.Emit.AssemblyBuilder**
+  - Find robust way to copy metadata with precision
+  - Test copying for large real-world managed assemblies
+
+- Investigate how to handle signed .dll files which need to be weaved
+  - Will the changed .dll be corrupted?
+  - Will the weaver fail to weave the assembly?
+  - How to maintain the original signature if the library was changed by weaver?
+
+- Implement IL weaving for AOT build
+  - Proof of concept
+  - Test with real-world AOT apps
+  - Signing and security explore
+
+- Implement Aspect-oriented lib
+  - Intercept methods \ properties \ constructors \ fields using attributes
+  - Data Validation \ Logging using attributes (see o41u/lib/Helpers/Guard)
+
+- Implement Promise.cs
+  - See [original idea reference](https://github.com/luminati-io/luminati-proxy/blob/master/util/etask.js)
+  - Expose API context for async methods:
+    - **return(res)** - cancel the execution and override the result
+    - **then(fn)** - execute the callback when the promise is resolved
+    - **finally(fn)** - execute the callback when the promise is resolved or rejected
+    - **cancel()** - cancel the execution of the promise
+    - **catch(fn)** - execute the callback when the promise is rejected.
+           Allows to handle errors smoothly
+    - **wait()** - wait for the promise to be resolved or rejected
+    - **sleep()** - pause current promise execution
+    - **add(child)** - interrupt this promise execution, add child promise,
+           waits for it's completion
+    - timeout(ms) - throws timeout error after ms
+    - log - expose Logger
+    - expose performance API as metrics \ timeline
+    - option for debouncing \ throttling
+    - option for retrying
+    - option for only once run executing
+    - option for avoid method execution when promise is working (.single-time-run)
+  
+  - !Investigate!
+    - invent easy way for integration. JS source use simple method wrapper which may be
+         annoying in c#. IL Weaving?
+    - Expose the context to the user during the **promise execution only**. JS source
+         exposed it by inserting it as method argument, but better to use static
+         variables
+
+- Implement some helper code \ find the NuGet for fast build of web API usage:
+  - Google, OpenAI, Claude, etc

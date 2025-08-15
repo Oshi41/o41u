@@ -7,10 +7,20 @@ using lib.Model;
 
 namespace lib.Helpers;
 
+/// <summary>
+/// Provides validation and comparison operations for objects with fluent API and static helper methods.
+/// </summary>
 public class Guard
 {
+    /// <summary>
+    /// Gets the item being validated.
+    /// </summary>
     public object? Item { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the Guard class with the specified item.
+    /// </summary>
+    /// <param name="item">The item to validate.</param>
     protected Guard(object? item)
     {
         Item = item;
@@ -18,17 +28,43 @@ public class Guard
 
     #region Unary
 
+    /// <summary>
+    /// Checks if the item is null.
+    /// </summary>
+    /// <returns>A GuardResult indicating whether the item is null.</returns>
     public GuardResult IsNull() => Item == null;
 
+    /// <summary>
+    /// Checks if the item is a Number with zero value.
+    /// </summary>
+    /// <returns>A GuardResult indicating whether the item is zero.</returns>
     public GuardResult IsZero() => Item is Number n && n.IsZero();
+    
+    /// <summary>
+    /// Checks if the item is a positive Number.
+    /// </summary>
+    /// <returns>A GuardResult indicating whether the item is positive.</returns>
     public GuardResult IsPositive() => Item is Number n && !n.IsNaN() && n > 0;
+    
+    /// <summary>
+    /// Checks if the item is a negative Number.
+    /// </summary>
+    /// <returns>A GuardResult indicating whether the item is negative.</returns>
     public GuardResult IsNegative() => Item is Number n && !n.IsNaN() && n < 0;
 
+    /// <summary>
+    /// Checks if the item is a Number with a fractional part.
+    /// </summary>
+    /// <returns>A GuardResult indicating whether the item has a fraction.</returns>
     public GuardResult HasFraction() => Item is Number n
                                         && !n.IsNaN()
                                         && Number.IsFloatingPointNumber(n)
                                         && n.Truncate() != n;
 
+    /// <summary>
+    /// Checks if the item is empty (null, empty string, empty collection, zero number, etc.).
+    /// </summary>
+    /// <returns>A GuardResult indicating whether the item is empty.</returns>
     public GuardResult IsEmpty()
     {
         if (IsNull()) return true;

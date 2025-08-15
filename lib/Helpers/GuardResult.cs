@@ -3,18 +3,37 @@ using System.Runtime.CompilerServices;
 
 namespace lib.Helpers;
 
+/// <summary>
+/// Represents the result of a guard validation operation with success status and error information.
+/// </summary>
 public record GuardResult
 {
     private string? _message = string.Empty;
+    
+    /// <summary>
+    /// Gets the name of the guard that produced this result.
+    /// </summary>
     public string? GuardName { get; }
+    
+    /// <summary>
+    /// Gets a value indicating whether the guard validation passed.
+    /// </summary>
     public readonly bool Ok;
 
+    /// <summary>
+    /// Initializes a successful GuardResult.
+    /// </summary>
     protected GuardResult()
     {
         Ok = true;
         GuardName = string.Empty;
     }
 
+    /// <summary>
+    /// Initializes a failed GuardResult with guard name and optional error message.
+    /// </summary>
+    /// <param name="guardName">The name of the guard that failed.</param>
+    /// <param name="error">Optional custom error message.</param>
     protected GuardResult(string? guardName, string? error = null)
     {
         Ok = false;
@@ -67,6 +86,11 @@ public record GuardResult
         }
     }
 
+    /// <summary>
+    /// Throws an exception if the guard validation failed.
+    /// </summary>
+    /// <returns>This GuardResult if validation passed.</returns>
+    /// <exception cref="Exception">Thrown when the guard validation failed.</exception>
     public GuardResult CheckAndThrow()
     {
         if (!Ok)

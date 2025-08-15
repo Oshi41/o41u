@@ -6,10 +6,24 @@ using lib.Services;
 
 namespace lib.Helpers;
 
+/// <summary>
+/// Provides comprehensive comparison and containment operations for various data types including dictionaries, enumerables, and primitives.
+/// </summary>
+/// <typeparam name="T">The type of objects to compare.</typeparam>
 internal class CommonComparer<T> : IRichComparer<T>
 {
+    /// <summary>
+    /// Gets a singleton instance of the CommonComparer.
+    /// </summary>
     public static IRichComparer Instance { get; } = new CommonComparer<T>();
     
+    /// <summary>
+    /// Compares two objects and returns an integer indicating their relative order.
+    /// Supports dictionaries, enumerables, and IComparable objects.
+    /// </summary>
+    /// <param name="x">The first object to compare.</param>
+    /// <param name="y">The second object to compare.</param>
+    /// <returns>Less than zero if x is less than y; zero if equal; greater than zero if x is greater than y.</returns>
     public virtual int Compare(object? x, object? y)
     {
         if (ReferenceEquals(x, y)) return 0;
@@ -72,6 +86,13 @@ internal class CommonComparer<T> : IRichComparer<T>
         return x.GetHashCode() - y.GetHashCode();
     }
     
+    /// <summary>
+    /// Determines whether the first object contains or includes the second object.
+    /// Supports containment checks for dictionaries, enumerables, and strings.
+    /// </summary>
+    /// <param name="x">The container object to check.</param>
+    /// <param name="y">The object to look for within the container.</param>
+    /// <returns>True if x contains y; otherwise, false.</returns>
     public virtual bool Contains(object? x, object? y)
     {
         if (x is IDictionary { Count: > 0 } xDict && y is IDictionary { Count: > 0 } yDict)
