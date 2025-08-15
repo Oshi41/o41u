@@ -4,6 +4,7 @@
         <LangVersion>12</LangVersion>
         <Nullable>enable</Nullable>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <AssemblyName>o41u.IL_Weaver</AssemblyName>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

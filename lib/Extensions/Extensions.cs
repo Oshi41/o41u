@@ -12,13 +12,6 @@ namespace lib.Extensions;
 public static partial class Extensions
 {
     /// <summary>
-    /// Returns true when the string is neither null nor empty.
-    /// </summary>
-    /// <param name="v">The string to check.</param>
-    /// <returns><c>true</c> if <paramref name="v"/> is not null or empty; otherwise, <c>false</c>.</returns>
-    public static bool HasValue(this string v) => !string.IsNullOrEmpty(v);
-
-    /// <summary>
     /// Attempts to get a value from a dictionary by key without throwing if the key is missing.
     /// </summary>
     /// <typeparam name="TKey">The type of the dictionary key.</typeparam>
@@ -45,7 +38,7 @@ public static partial class Extensions
     /// <param name="func">The primary function to execute.</param>
     /// <param name="onCatch">A fallback function to execute when <paramref name="func"/> throws.</param>
     /// <returns>The result of <paramref name="func"/>, or the result of <paramref name="onCatch"/>, or default if both fail.</returns>
-    public static T SafeLoad<T>(Func<T> func, Func<T> onCatch)
+    public static T? SafeLoad<T>(Func<T> func, Func<T> onCatch)
     {
         try
         {

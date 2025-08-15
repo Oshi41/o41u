@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace IL_Weaver.Weaver
+namespace IL_Weaver.Weaver_old
 {
     /// <summary>
     /// netstandard2.0-friendly method interceptor using DynamicMethod.

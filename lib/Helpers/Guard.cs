@@ -39,7 +39,7 @@ public class Guard
 
         if (Item is FileSystemInfo { Exists: false }) return true;
 
-        if (Item is FileInfo f) return !f.ReadAllText().HasValue();
+        if (Item is FileInfo f) return f.ReadAllText().IsNullOrEmpty();
 
         if (Item is DirectoryInfo dir) return !dir.ListFiles().Any();
 

@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace IL_Weaver.Weaver;
+namespace IL_Weaver.Weaver_old;
 
 internal static class AssemblyResolver
 {

@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace IL_Weaver.Weaver;
+namespace IL_Weaver.Weaver_old;
 
 public class AssemblyWeaver 
 {

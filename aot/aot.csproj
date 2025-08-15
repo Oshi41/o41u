@@ -9,6 +9,7 @@
         <SelfContained>true</SelfContained>
         <InvariantGlobalization>true</InvariantGlobalization>
         <OutputType>Exe</OutputType>
+        <AssemblyName>o41u.aot</AssemblyName>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

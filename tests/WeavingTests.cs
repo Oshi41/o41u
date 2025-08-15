@@ -22,7 +22,7 @@ public class WeavingTests
         var dlls = Directory.Current.ListFiles("**/aot.dll");
         Assert.That(dlls, Is.Not.Empty);
 
-        var weaver = new Weaver(dlls.First().FullName);
+        var weaver = new IlWeaver(dlls.First().FullName);
         Assert.That(weaver.AllTypes, Is.Not.Empty);
     }
 }
