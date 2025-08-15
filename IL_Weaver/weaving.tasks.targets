@@ -1,0 +1,23 @@
+﻿<Project>
+    <Target Name="RunIlWeaver"
+            AfterTargets="CoreCompile"
+            BeforeTargets="PrepareForILLink;PublishAot">
+        <PropertyGroup>
+            <!-- Paths to compiled IL and PDB in obj/ -->
+            <BuiltAssembly>$(TargetPath)</BuiltAssembly>
+            <BuiltPdb>$(TargetDir)$(TargetName).pdb</BuiltPdb>
+        </PropertyGroup>
+
+        <!-- Ensure symbols exist (portable PDB is recommended) -->
+        <ItemGroup>
+            <FilesToWeave Include="$(BuiltAssembly)"/>
+            <FilesToWeave Include="$(BuiltPdb)" Condition="Exists('$(BuiltPdb)')"/>
+        </ItemGroup>
+
+        <!-- Run your weaver EXE or dotnet tool -->
+        <Exec Command='"$(DotNetRoot)\dotnet.exe" "$(SolutionDir)IL_Weaver\bin\$(Configuration)\net8.0\IL_Weaver.dll" "$(BuiltAssembly)"'/>
+
+        <!-- Optionally touch the output to ensure downstream targets rerun if needed -->
+        <Touch Files="$(BuiltAssembly)" AlwaysCreate="false"/>
+    </Target>
+</Project>

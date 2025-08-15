@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using lib.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,7 +15,7 @@ public static partial class Extensions
     /// <returns>The same <see cref="IServiceCollection"/> instance to allow chaining.</returns>
     public static IServiceCollection RegisterTypes(this IServiceCollection services)
     {
-        foreach (var type in LoadAllTypes())
+        foreach (var type in AppDomain.CurrentDomain.LoadAllTypes())
         {
             foreach (var attr in type.GetCustomAttributes<RegistrationAttribute>())
             {

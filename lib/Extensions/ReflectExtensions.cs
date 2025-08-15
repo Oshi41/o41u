@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -7,49 +8,100 @@ namespace lib.Extensions;
 
 public static partial class Extensions
 {
-    /// <summary>
-    /// Safely loads all available types from the assemblies currently loaded into the AppDomain.
-    /// </summary>
-    /// <returns>An enumerable of all successfully loaded <see cref="Type"/> instances.
-    /// In case of partial failures (e.g., <see cref="ReflectionTypeLoadException"/>), the types that were loaded successfully are included.
-    /// Any errors are logged and the method continues processing remaining assemblies.</returns>
-    public static IEnumerable<Type> LoadAllTypes()
-    {
-        var assemblies = SafeLoad(AppDomain.CurrentDomain.GetAssemblies);
+    // ReSharper disable once InconsistentNaming
+    private static readonly BindingFlags ALL = BindingFlags.Public |
+                                               BindingFlags.Static |
+                                               BindingFlags.Instance |
+                                               BindingFlags.NonPublic;
 
-        foreach (var assembly in assemblies)
+    public static bool TryGetProp<T>(this object owner, string propertyName, out T result)
+    {
+        result = default;
+
+        if (owner?.GetType() is { } type)
         {
-            var types = new List<Type>();
+            var propInfo = SafeLoad(() => type.GetProperty(propertyName, ALL));
+            if (propInfo is { CanRead: true } prop)
+            {
+                object val;
+                try
+                {
+                    val = prop.GetValue(owner);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning("Error during property getter: {ex}", ex);
+                    return false;
+                }
+
+                if (val is T converted)
+                {
+                    result = converted;
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static IEnumerable<Type> LoadAllTypes(this Module mod)
+    {
+        if (mod != null)
+        {
             try
             {
-                types.AddRange(assembly.GetTypes());
+                return mod.GetTypes().Where(x => x != null).ToList();
             }
             catch (ReflectionTypeLoadException ex)
             {
                 Log.Warning("Error during obtaining the types: {e}", ex);
                 // Add the types that were successfully loaded
-                types.AddRange(ex.Types.Where(t => t != null));
+                return ex.Types.Where(t => t != null).ToList();
             }
             catch (Exception e)
             {
-                Log.Warning("Error during obtaining the types: {e}", e);
                 // Skip assemblies that can't be loaded or reflected on
-                continue;
+                Log.Warning("Error during obtaining the types: {e}", e);
             }
+        }
 
-            foreach (var type in types)
+        return [];
+    }
+
+    public static IEnumerable<Type> LoadAllTypes(this Assembly assembly)
+    {
+        if (assembly != null)
+        {
+            foreach (var mod in SafeLoad(assembly.GetModules))
             {
-                yield return type;
+                foreach (var t in LoadAllTypes(mod))
+                {
+                    yield return t;
+                }
             }
         }
     }
 
-    
+    public static IEnumerable<Type> LoadAllTypes(this AppDomain domain)
+    {
+        if (domain != null)
+        {
+            foreach (var assembly in SafeLoad(domain.GetAssemblies).Where(x => x != null))
+            {
+                foreach (var t in LoadAllTypes(assembly))
+                {
+                    yield return t;
+                }
+            }
+        }
+    }
+
     public static IEnumerable<Type> GetDependants(this Type type)
     {
         if (type == null) yield break;
 
-        if (type.IsEnum && type.GetEnumUnderlyingType() is {} enumType)
+        if (type.IsEnum && type.GetEnumUnderlyingType() is { } enumType)
         {
             foreach (var t in IterateThroughItem(enumType))
             {
@@ -64,10 +116,9 @@ public static partial class Extensions
                 yield return t;
             }
         }
-        
+
         foreach (var @interface in type.GetInterfaces())
         {
-            
         }
 
 
@@ -75,11 +126,11 @@ public static partial class Extensions
         {
             if (item != null)
                 yield return item;
-            
+
             foreach (var child in GetDependants(item))
             {
                 yield return child;
             }
         }
-    } 
+    }
 }

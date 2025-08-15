@@ -8,6 +8,14 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <OutputPath>..\bin\Debug\</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <OutputPath>..\bin\Release\</OutputPath>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="6.0.2"/>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1"/>
@@ -22,6 +30,7 @@
 
     <ItemGroup>
         <ProjectReference Include="../lib/lib.csproj" />
+        <ProjectReference Include="..\IL_Weaver\IL_Weaver.csproj" />
     </ItemGroup>
 
 </Project>

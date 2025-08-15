@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace lib.Extensions;
+namespace IL_Weaver.Weaver;
 
 /// <summary>
 /// Helpers for working with dynamic assemblies.

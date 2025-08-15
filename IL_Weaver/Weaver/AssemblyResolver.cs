@@ -1,9 +1,8 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
-namespace lib.Services;
+namespace IL_Weaver.Weaver;
 
 internal static class AssemblyResolver
 {

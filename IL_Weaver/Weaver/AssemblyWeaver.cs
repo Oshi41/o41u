@@ -1,9 +1,8 @@
 ﻿using System;
-using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace lib.Model;
+namespace IL_Weaver.Weaver;
 
 public class AssemblyWeaver 
 {

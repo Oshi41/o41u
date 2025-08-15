@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using lib.Helpers;
 
 namespace lib.Extensions;
 
@@ -63,28 +66,5 @@ public static partial class Extensions
             return default;
         }
     }
-
-    /// <summary>
-    /// Invokes the specified action for each element in the source sequence.
-    /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="src">The source sequence.</param>
-    /// <param name="action">The action to invoke for each element.</param>
-    public static void ForEach<T>(this IEnumerable<T> src, Action<T> action) => src.ForEach((arg1, _) => action(arg1));
-
-    /// <summary>
-    /// Invokes the specified action for each element in the source sequence, providing the element index.
-    /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="src">The source sequence.</param>
-    /// <param name="action">The action to invoke for each element and its zero-based index.</param>
-    public static void ForEach<T>(this IEnumerable<T> src, Action<T, int> action)
-    {
-        var index = 0;
-        foreach (var item in src)
-        {
-            action(item, index);
-            index++;
-        }
-    }
+    
 }
